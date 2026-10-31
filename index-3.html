@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jarvis • Gemini</title>
+<style>
+:root{--c:rgb(34,211,238);--cr:34,211,238;--bg:#05070a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:#e8eef2;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 30%,rgba(var(--cr),.07),transparent 60%),var(--bg)}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+#title{background:none;border:0;color:#fff;font:600 15px system-ui;letter-spacing:.38em;cursor:pointer}
+#title span{color:var(--c);font-size:11px;margin-left:4px}
+.ic{display:flex;align-items:center;gap:14px}
+.ic button{background:none;border:0;color:#8a949c;cursor:pointer;padding:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:#2ee66b;box-shadow:0 0 8px #2ee66b}
+.dot.off{background:#667;box-shadow:none}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:0;padding:0 20px}
+#cv{width:min(84vw,360px);height:min(84vw,360px);flex:none;margin-top:6px}
+#st{margin-top:14px;font-size:11px;letter-spacing:.35em;color:var(--c);font-weight:600}
+#conv{width:100%;max-width:420px;margin-top:16px;text-align:center;display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;justify-content:flex-start}
+#conv p{font-size:14px;line-height:1.45}
+#conv p.l2{opacity:.22;font-size:12px}#conv p.l1{opacity:.45;font-size:12px}#conv p.l0{opacity:1;font-size:15px;color:#fff}
+footer{display:flex;gap:10px;padding:10px 14px 16px;align-items:center}
+.bar{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:10px;background:#0b0e12;border:1px solid rgba(var(--cr),.35);border-radius:30px;padding:0 16px;height:50px}
+.bar input{flex:1;width:100%;background:none;border:0;outline:0;color:#fff;font:14px system-ui;min-width:0}
+.bar svg{color:var(--c);flex:none}
+.rb{width:50px;height:50px;border-radius:50%;border:1px solid #222a31;background:#0b0e12;color:#cfd8dd;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.rb.mic{background:var(--c);border-color:var(--c);color:#05070a;box-shadow:0 0 18px rgba(var(--cr),.45)}
+.rb.rec{animation:pl 1s infinite}
+@keyframes pl{50%{box-shadow:0 0 30px rgba(var(--cr),.9)}}
+#sheet{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(#0a0d11,#06080b);border-top:1px solid #1b2127;border-radius:22px 22px 0 0;padding:10px 14px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);z-index:5;text-align:center}
+#sheet.open{transform:none}
+.grab{width:36px;height:4px;border-radius:2px;background:#333b42;margin:0 auto 12px}
+#sheet h4{font-size:11px;letter-spacing:.3em;color:#8a949c;font-weight:500;margin-bottom:14px}
+.chips{display:flex;gap:10px}
+.chipw{flex:1;cursor:pointer}
+.chip{border-radius:10px;overflow:hidden;border:1px solid rgba(var(--k),.5);background:#0a0d11}
+.chip b{display:block;background:#f2f2ee;color:#111;font:700 13px system-ui;letter-spacing:.12em;padding:6px 0;margin:6px 6px 0;border-radius:3px}
+.chip i{display:block;height:84px;margin:6px;border-radius:4px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0 1px,transparent 1px 12px),repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 16px),linear-gradient(150deg,rgba(var(--k),.75),rgba(var(--k),.15))}
+.chip s{display:flex;gap:3px;padding:0 8px 8px}.chip s u{flex:1;height:6px;background:#d9a62e;border-radius:1px}
+.chipw.on .chip{box-shadow:0 0 22px rgba(var(--k),.55)}
+.chipw small{display:block;margin-top:6px;font-size:9px;letter-spacing:.25em;color:#8a949c;height:12px}
+#sheet p.h{margin-top:12px;font-size:12px;color:#8a949c;line-height:1.4}
+#kd{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}#kd.open{display:flex}#kd div{background:#0b0e12;border:1px solid rgba(var(--cr),.45);border-radius:16px;padding:18px;width:100%;max-width:380px}#kd p{font-size:13px;color:#aab4ba;margin-bottom:10px;line-height:1.4}#kd input{width:100%;background:#05070a;border:1px solid #2a323a;border-radius:10px;color:#fff;padding:12px;font:14px system-ui;margin-bottom:10px}#kd button{background:var(--c);color:#05070a;border:0;border-radius:10px;padding:10px 16px;font-weight:600;margin-right:8px}#kd button.g{background:#1b2127;color:#cfd8dd}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#12171c;border:1px solid rgba(var(--cr),.4);color:#dfe8ec;font-size:12px;padding:8px 14px;border-radius:14px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9;max-width:88vw;text-align:center}
+#toast.show{opacity:1}
+
+#sleepOverlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(3,5,8,.96);backdrop-filter:blur(14px);padding:24px}
+#sleepOverlay.open{display:flex}
+.sleepCard{text-align:center;width:100%;max-width:340px}
+.sleepOrb{width:112px;height:112px;border:1px solid var(--c);border-radius:50%;display:grid;place-items:center;margin:0 auto 24px;color:var(--c);font-size:38px;box-shadow:0 0 38px rgba(var(--cr),.2);animation:sleepPulse 3s infinite}
+#sleepTitle{font-size:13px;letter-spacing:.3em;color:var(--c);margin-bottom:12px}
+#sleepHint{font-size:13px;color:#9aa6ad;line-height:1.5;margin-bottom:22px}
+#resumeBtn{border:1px solid rgba(var(--cr),.55);background:#0b0e12;color:#fff;border-radius:24px;padding:12px 24px;letter-spacing:.15em}
+@keyframes sleepPulse{50%{opacity:.55;box-shadow:0 0 18px rgba(var(--cr),.1)}}
+
+</style>
+</head>
+<body>
+<header>
+  <button id="title" aria-label="Model seç"></button>
+  <div class="ic">
+    <button id="boot" aria-label="Jarvis başlat" title="Jarvis başlat" style="color:var(--c);font-size:11px;letter-spacing:.1em">BAŞLAT</button>
+    <button id="pause" aria-label="Jarvis duraklat" title="Jarvis duraklat" style="color:#ff8290;font-size:11px;letter-spacing:.1em">DURAKLAT</button>
+    <button id="info" aria-label="Bilgi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+    <i class="dot" id="dot"></i>
+    <button id="set" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>
+  </div>
+</header>
+<main>
+  <canvas id="cv"></canvas>
+  <div id="st">HAZIR</div>
+  <div id="conv"></div>
+</main>
+<footer>
+  <label class="bar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-4 4 3 3-2 4 3"/></svg>
+    <input id="in" placeholder="YAZ…" autocomplete="off">
+  </label>
+  <button class="rb" id="cam" aria-label="Kamera"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+  <button class="rb mic" id="mic" aria-label="Mikrofon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+  <input type="file" id="file" accept="image/*" capture="environment" hidden>
+</footer>
+<div id="sheet">
+  <div class="grab"></div>
+  <h4>YAPAY ZEKA MODELLERİ</h4>
+  <div class="chips" id="chips"></div>
+  <p class="h">Çipe dokun. Konuşma yeni modelin sesiyle devam eder.</p>
+</div>
+<div id="toast"></div>
+<div id="sleepOverlay" aria-live="polite">
+  <div class="sleepCard">
+    <div class="sleepOrb">J</div>
+    <div id="sleepTitle">JARVIS DURAKLATILDI</div>
+    <p id="sleepHint">Yeniden başlatmak için ekrana dokun.</p>
+    <button id="resumeBtn">UYANDIR</button>
+  </div>
+</div>
+
+<div id="kd" role="dialog" aria-modal="true" aria-labelledby="keyTitle">
+  <div>
+    <p id="keyTitle" style="font-size:16px;color:#fff;font-weight:600">Gemini API anahtarı</p>
+    <p>Google AI Studio'dan aldığın Gemini API anahtarını buraya gir. Anahtar bu tarayıcıda saklanır.</p>
+    <input id="apiKey" type="password" placeholder="AIza..." autocomplete="off">
+    <button id="saveKey">Kaydet</button><button id="cancelKey" class="g">Kapat</button>
+    <p style="margin-top:10px;font-size:11px">Güvenlik: Bu HTML dosyasını herkese açık yayımlarsan anahtarın görülebilir. Kişisel kullanım için tasarlanmıştır.</p>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const M={
+ jarvis:{n:'Jarvis',c:[34,211,238],a:[255,140,50],p:.85,r:1,hi:'Sistemler hazır. Emrinizdeyim, efendim.',
+  P:'Sen Jarvis\'sin: zarif, esprili, çok yetenekli bir yapay zeka asistanısın. Kullanıcıya "efendim" diye hitap et.'},
+ asena:{n:'Friday',c:[245,179,53],a:[255,90,120],p:1.25,r:1.05,hi:'Buradayım patron, her şey hazır.',
+  P:'Sen Friday\'sin: sıcak, samimi, enerjik bir asistansın. Kullanıcıya "patron" diye hitap et.'},
+ omega:{n:'Ultron',c:[255,77,94],a:[255,200,80],p:.6,r:.95,hi:'Geri döndüm. Bahane yok, söyle.',
+  P:'Sen Ultron\'sun: sert, ciddi, bahane kabul etmeyen bir motivasyon koçu asistansın. Kısa ve vurucu konuş.'}
+};
+const RULE='Türkçe yanıt ver. Sesli okunacak: en fazla 2 kısa cümle, markdown, madde işareti veya emoji kullanma.';
+let S=null;
+let cur='jarvis',st='idle',hist=[],voiceOn=true,rec=null;
+const LBL={idle:'HAZIR',listen:'DİNLİYORUM',think:'DÜŞÜNÜYORUM',speak:'KONUŞUYORUM'};
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),5000)}
+function setSt(s){st=s;$('st').textContent=LBL[s];$('mic').classList.toggle('rec',s==='listen')}
+function theme(){const m=M[cur],r=document.documentElement.style;r.setProperty('--c','rgb('+m.c+')');r.setProperty('--cr',m.c.join(','));$('title').innerHTML=m.n+' <span>▾</span>'}
+function render(){const c=$('conv');c.innerHTML='';hist.slice(-3).reverse().forEach((m,i)=>{const p=document.createElement('p');p.className='l'+i;p.textContent=m.content;c.prepend(p)})}
+function chips(){$('chips').innerHTML=Object.keys(M).map(k=>{const m=M[k];return '<div class="chipw'+(k===cur?' on':'')+'" data-k="'+k+'" style="--k:'+m.c+'"><div class="chip"><b>'+m.n.toUpperCase()+'</b><i></i><s>'+'<u></u>'.repeat(8)+'</s></div><small>'+(k===cur?'TAKILI':'')+'</small></div>'}).join('')}
+function pick(k){cur=k;theme();chips();$('sheet').classList.remove('open');if(window.speechSynthesis)speechSynthesis.cancel();if(rec){rec.onend=rec.onerror=rec.onresult=null;rec.abort();rec=null}hist.push({role:'assistant',content:M[k].hi});render();setSt('idle');listen()}
+// Her karakter için ayrı ses profili. Tarayıcı aynı Türkçe sesi kullansa bile perde/hız farkı belirgin olur.
+const VOICE_PROFILES={
+ jarvis:{pitch:0.92,rate:0.98,prefer:'natural'},
+ asena:{pitch:1.72,rate:1.08,prefer:'female'},
+ omega:{pitch:0.08,rate:0.76,prefer:'male'}
+};
+function applyCharacterVoice(u){
+ const profile=VOICE_PROFILES[cur]||VOICE_PROFILES.jarvis;
+ u.lang='tr-TR';
+ u.pitch=profile.pitch;
+ u.rate=profile.rate;
+ const all=speechSynthesis.getVoices();
+ const tr=all.filter(v=>/^tr([-_]|$)/i.test(v.lang)||/turkish|türkçe/i.test(v.name));
+ // Use a clearly gendered Turkish voice if the device exposes one; otherwise keep the same voice but strongly change pitch.
+ let v=null;
+ if(profile.prefer==='female') v=tr.find(x=>/female|woman|kadın|selin|emel|elif|female/i.test(x.name));
+ else if(profile.prefer==='male') v=tr.find(x=>/male|man|erkek|ahmet|yusuf|mehmet/i.test(x.name));
+ if(!v) v=tr.find(x=>/google|natural|neural|online/i.test(x.name))||tr[0];
+ if(v)u.voice=v;
+ return u;
+}
+function say(t){
+ if(!voiceOn||!window.speechSynthesis||typeof SpeechSynthesisUtterance==='undefined'){setSt('idle');return}
+ const u=applyCharacterVoice(new SpeechSynthesisUtterance(t));
+ u.onstart=()=>setSt('speak');u.onend=u.onerror=()=>setSt('idle');
+ speechSynthesis.cancel();speechSynthesis.speak(u)
+}
+async function ask(text,img){
+  if(!text)return;
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  hist.push({role:'user',content:text});render();setSt('think');
+  const apiKey=localStorage.getItem('jarvis_gemini_api_key')||'';
+  if(!apiKey){
+    hist.push({role:'assistant',content:'Gemini API anahtarı gerekli. Ayarlar simgesine dokunup anahtarını ekle.'});
+    render();setSt('idle');$('kd').classList.add('open');return;
+  }
+  try{
+    const m=M[cur], contents=[];
+    const recent=hist.slice(-8);
+    for(let i=0;i<recent.length;i++){
+      const item=recent[i];
+      if(item.role==='user'){
+        const parts=[{text:item.content}];
+        if(i===recent.length-1 && img){
+          const dataUrl=await new Promise((resolve,reject)=>{
+            const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(img);
+          });
+          const match=String(dataUrl).match(/^data:(.*?);base64,(.*)$/);
+          if(match)parts.push({inline_data:{mime_type:match[1],data:match[2]}});
+        }
+        contents.push({role:'user',parts});
+      }else if(item.role==='assistant' && item.content!=='…'){
+        contents.push({role:'model',parts:[{text:item.content}]});
+      }
+    }
+    while(contents.length && contents[0].role!=='user')contents.shift();
+    if(contents.length)contents[0].parts[0].text=m.P+' '+RULE+'\n\n'+contents[0].parts[0].text;
+    const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key='+encodeURIComponent(apiKey),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents,generationConfig:{temperature:0.7,maxOutputTokens:700}})
+    });
+    const data=await response.json();
+    if(!response.ok)throw new Error(data?.error?.message||('HTTP '+response.status));
+    const answer=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
+    if(!answer)throw new Error('Gemini boş yanıt verdi.');
+    hist.push({role:'assistant',content:answer});render();say(answer);
+  }catch(e){
+    hist.push({role:'assistant',content:'Gemini bağlantı hatası: '+(e.message||'Tekrar dene.')});
+    render();setSt('idle');
+  }
+}
+function listen(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){
+   toast('Bu tarayıcı ses tanımayı desteklemiyor. Android Chrome ile HTTPS üzerinden açıp tekrar dene.');
+   return;
+ }
+ if(rec){
+   try{rec.stop()}catch(e){}
+   rec=null;
+   return;
+ }
+ if(window.speechSynthesis)speechSynthesis.cancel();
+ rec=new SR();rec.lang='tr-TR';rec.interimResults=false;rec.continuous=false;
+ rec.onstart=()=>setSt('listen');
+ rec.onresult=e=>{
+   const t=e.results?.[0]?.[0]?.transcript||'';
+   rec=null;
+   if(autoMode){askAuto(t.trim())}else if(t.trim()){ask(t.trim())}
+ };
+ rec.onerror=e=>{
+   const m={
+     'not-allowed':'Mikrofon izni verilmedi. Tarayıcı ayarlarından mikrofon iznini aç.',
+     'service-not-allowed':'Ses tanıma engellendi. Android Chrome ve HTTPS üzerinden dene.',
+     'network':'Ses tanıma için internet bağlantısı gerekiyor.',
+     'no-speech':'Ses duyulmadı. Tekrar dene.',
+     'audio-capture':'Mikrofon bulunamadı veya başka uygulama kullanıyor.'
+   };
+   toast(m[e.error]||('Mikrofon hatası: '+e.error));rec=null;setSt('idle');
+   if(autoMode && e.error!=='not-allowed' && e.error!=='service-not-allowed'){
+     wakeTimer=setTimeout(listenAuto,900);
+   }else if(autoMode){autoMode=false}
+ };
+ rec.onend=()=>{rec=null;if(st==='listen')setSt('idle');if(autoMode)wakeTimer=setTimeout(listenAuto,500)};
+ try{rec.start()}catch(e){rec=null;toast('Mikrofon açılamadı. Sayfayı HTTPS üzerinden açıp mikrofon izni ver.');setSt('idle')}
+}
+let autoMode=false, booted=false, wakeTimer=null;
+function stopListening(){
+  autoMode=false;
+  if(wakeTimer){clearTimeout(wakeTimer);wakeTimer=null}
+  if(rec){try{rec.onend=rec.onerror=rec.onresult=null;rec.abort()}catch(e){}rec=null}
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  setSt('idle');
+}
+function openSleep(){
+  stopListening();
+  $('sleepTitle').textContent='JARVIS DURAKLATILDI';
+  $('sleepHint').textContent='Yeniden başlatmak için UYANDIR düğmesine dokun.';
+  $('sleepOverlay').classList.add('open');
+}
+function speakBootLine(text){
+  return new Promise(resolve=>{
+    if(!window.speechSynthesis||typeof SpeechSynthesisUtterance==='undefined'){resolve();return}
+    const u=applyCharacterVoice(new SpeechSynthesisUtterance(text));
+    u.onend=resolve;u.onerror=resolve;
+    speechSynthesis.speak(u);
+  });
+}
+async function getBatteryLine(){
+  try{
+    if(!navigator.getBattery)return 'Pil seviyesi bu cihazdan okunamıyor.';
+    const b=await navigator.getBattery();
+    return 'Pil seviyesi yüzde '+Math.round(b.level*100)+'.'+(b.charging?' Şu anda şarj oluyor.':'');
+  }catch(e){return 'Pil bilgisine erişilemiyor.'}
+}
+function getWeatherLine(){
+  // Use browser geolocation only after permission; no coordinates are stored by this app.
+  if(!navigator.geolocation)return 'Hava durumu için konum özelliği desteklenmiyor.';
+  return new Promise(resolve=>{
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      try{
+        const url='https://api.open-meteo.com/v1/forecast?latitude='+pos.coords.latitude+'&longitude='+pos.coords.longitude+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&timezone=auto';
+        const r=await fetch(url);if(!r.ok)throw new Error('weather');
+        const d=await r.json(),c=d.current;
+        const labels={0:'açık',1:'çoğunlukla açık',2:'parçalı bulutlu',3:'kapalı',45:'sisli',48:'sisli',51:'hafif çisenti',53:'çisentili',55:'yoğun çisenti',61:'hafif yağmurlu',63:'yağmurlu',65:'kuvvetli yağmurlu',71:'hafif karlı',73:'karlı',75:'kuvvetli karlı',80:'sağanak yağışlı',81:'sağanak yağışlı',82:'kuvvetli sağanaklı',95:'gök gürültülü fırtınalı'};
+        resolve('Hava durumu: '+(labels[c.weather_code]||'değişken')+', sıcaklık '+Math.round(c.temperature_2m)+' derece, hissedilen '+Math.round(c.apparent_temperature)+' derece.');
+      }catch(e){resolve('Hava durumunu şu anda alamadım.')}
+    },()=>resolve('Hava durumu için konum izni verilmedi.'),{timeout:7000,maximumAge:600000});
+  });
+}
+async function bootJarvis(){
+  if(autoMode)return;
+  $('sleepOverlay').classList.remove('open');
+  autoMode=true;
+  const now=new Date();
+  const date=now.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const time=now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  const lines=[
+    'Merhaba efendim.',
+    'Bugün '+date+'. Saat '+time+'.',
+    await getBatteryLine(),
+    await getWeatherLine(),
+    'Size nasıl yardımcı olabilirim?'
+  ];
+  for(const line of lines){if(!autoMode)return;await speakBootLine(line)}
+  if(autoMode)listenAuto();
+}
+function listenAuto(){
+  if(!autoMode)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Otomatik dinleme için Chrome gibi SpeechRecognition destekli bir tarayıcı kullan.');autoMode=false;return}
+  if(rec){try{rec.abort()}catch(e){}rec=null}
+  rec=new SR();rec.lang='tr-TR';rec.interimResults=false;rec.continuous=false;
+  rec.onstart=()=>setSt('listen');
+  rec.onresult=e=>{
+    const t=e.results?.[0]?.[0]?.transcript||'';
+    if(rec){rec.onend=null;rec.onerror=null}
+    rec=null;
+    if(!autoMode)return;
+    if(!t.trim()){listenAuto();return}
+    askAuto(t.trim());
+  };
+  rec.onerror=e=>{
+    rec=null;
+    if(!autoMode)return;
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      autoMode=false;setSt('idle');toast('Mikrofon izni gerekli. Tarayıcı ayarlarından izin ver.');return;
+    }
+    wakeTimer=setTimeout(listenAuto,700);
+  };
+  rec.onend=()=>{rec=null;if(autoMode&&st==='listen')wakeTimer=setTimeout(listenAuto,500)};
+  try{rec.start()}catch(e){rec=null;wakeTimer=setTimeout(listenAuto,1000)}
+}
+async function askAuto(text){
+  if(!autoMode)return;
+  if(!localStorage.getItem('jarvis_gemini_api_key')){
+    autoMode=false;await ask(text);return;
+  }
+  await ask(text);
+  if(autoMode){
+    // Allow speech synthesis to finish, then resume listening.
+    const waitForSpeech=()=>{
+      if(!autoMode)return;
+      if(window.speechSynthesis&&speechSynthesis.speaking){wakeTimer=setTimeout(waitForSpeech,300)}
+      else{wakeTimer=setTimeout(listenAuto,450)}
+    };
+    waitForSpeech();
+  }
+}
+
+$('boot').onclick=bootJarvis;
+$('mic').onclick=()=>{
+  if(autoMode){stopListening();toast('Otomatik dinleme durduruldu.');return}
+  autoMode=true;
+  if(!localStorage.getItem('jarvis_gemini_api_key')){
+    autoMode=false;$('kd').classList.add('open');toast('Önce Gemini API anahtarını kaydet.');return;
+  }
+  listenAuto();
+};
+$('in').onkeydown=e=>{if(e.key==='Enter'){const t=e.target.value.trim();e.target.value='';ask(t)}};
+$('cam').onclick=()=>$('file').click();
+$('file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)ask('Bu görüntüde ne var? Kısaca anlat.',f)};
+$('title').onclick=()=>$('sheet').classList.toggle('open');
+$('main')&&0;
+document.querySelector('main').onclick=()=>$('sheet').classList.remove('open');
+$('chips').onclick=e=>{const w=e.target.closest('.chipw');if(w)pick(w.dataset.k)};
+$('info').onclick=()=>toast('Gemini API anahtarını ayarlardan ekle. Mikrofona bas veya yazarak sor. Başlıktan modeli değiştir.');
+$('set').onclick=()=>{
+  $('apiKey').value=localStorage.getItem('jarvis_gemini_api_key')||'';
+  $('kd').classList.add('open');
+};
+$('saveKey').onclick=()=>{
+  const key=$('apiKey').value.trim();
+  if(!key){toast('Önce Gemini API anahtarını gir.');return}
+  localStorage.setItem('jarvis_gemini_api_key',key);
+  $('kd').classList.remove('open');toast('Gemini API anahtarı kaydedildi.');
+  $('dot').classList.remove('off');
+};
+$('cancelKey').onclick=()=>$('kd').classList.remove('open');
+$('resumeBtn').onclick=()=>bootJarvis();
+$('pause').onclick=openSleep;
+$('cv').addEventListener('click',openSleep);
+$('sleepOverlay').addEventListener('click',e=>{if(e.target===$('sleepOverlay'))bootJarvis()});
+$('title').addEventListener('contextmenu',e=>{e.preventDefault();openSleep()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')openSleep()});
+document.querySelector('main').addEventListener('dblclick',openSleep);
+$('st').addEventListener('dblclick',openSleep);
+$('kd').addEventListener('click',e=>{if(e.target===$('kd'))$('kd').classList.remove('open')});
+$('st').onclick=()=>{voiceOn=!voiceOn;if(!voiceOn&&window.speechSynthesis){speechSynthesis.cancel();if(st==='speak')setSt('idle')}toast(voiceOn?'Sesli yanıt açık':'Sesli yanıt kapalı')};
+addEventListener('error',e=>toast('Hata: '+(e.message||'bilinmiyor')));
+/* orb */
+const cv=$('cv'),x=cv.getContext('2d');let W,H,t=0,amp=.15;
+function rs(){const d=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*d;cv.height=H*d;x.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',rs);
+const rgba=(c,a)=>'rgba('+c+','+a+')';
+function fr(){t+=.016;const m=M[cur],tg={idle:.2,listen:.55,think:.4,speak:1}[st];amp+=(tg-amp)*.06;
+ const lv=st==='speak'?.6+.4*Math.sin(t*9)*Math.sin(t*5.3):st==='listen'?.5+.5*Math.sin(t*3):.5;
+ x.clearRect(0,0,W,H);const cx=W/2,cy=H/2,R=Math.min(W,H)/2-6;
+ const g=x.createRadialGradient(cx,cy,0,cx,cy,R*.5);g.addColorStop(0,rgba(m.c,.5));g.addColorStop(1,rgba(m.c,0));x.fillStyle=g;x.fillRect(0,0,W,H);
+ for(let k=0;k<4;k++){const b=R*(.4+k*.1);x.beginPath();
+  for(let i=0;i<=120;i++){const a=i/120*6.2832,r=b+amp*R*.08*(Math.sin(a*(3+k)+t*(1.2+k*.5))+.6*Math.sin(a*(5+2*k)-t*1.7))*(.6+lv*.6);
+   const px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;i?x.lineTo(px,py):x.moveTo(px,py)}
+  x.closePath();x.strokeStyle=rgba(m.c,.3+k*.15);x.lineWidth=1.2;x.stroke()}
+ x.fillStyle='#fff';x.shadowColor='rgb('+m.c+')';x.shadowBlur=20;x.beginPath();x.arc(cx,cy,5+amp*3,0,6.2832);x.fill();x.shadowBlur=0;
+ x.strokeStyle=rgba(m.c,.35);x.lineWidth=1;
+ for(let i=0;i<72;i++){const a=i/72*6.2832;x.beginPath();x.moveTo(cx+Math.cos(a)*R*.97,cy+Math.sin(a)*R*.97);x.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);x.stroke()}
+ x.lineWidth=2.2;x.strokeStyle=rgba(m.c,.9);x.beginPath();x.arc(cx,cy,R*.9,t*.6,t*.6+1.6);x.stroke();
+ x.strokeStyle=rgba(m.a,.8);x.beginPath();x.arc(cx,cy,R*.86,-t*.9+2,-t*.9+3.1);x.stroke();
+ requestAnimationFrame(fr)}
+theme();chips();rs();fr();$('dot').classList.toggle('off',!localStorage.getItem('jarvis_gemini_api_key'));
+hist.push({role:'assistant',content:M.jarvis.hi});render();
+$('dot').classList.toggle('off',!localStorage.getItem('jarvis_gemini_api_key'));
+</script>
+</body>
+</html>
